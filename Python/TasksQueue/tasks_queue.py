@@ -27,23 +27,20 @@ class Movie(object):
 
 
 # 1. 工作流中的三个步骤
-@time_stat
 def download(movie):
-    time.sleep(random.randint(1, 3))
+    time.sleep(1)
     movie.after_download()
     return movie
 
 
-@time_stat
 def translate(movie):
-    time.sleep(random.randint(1, 2))
+    time.sleep(2)
     movie.after_translate()
     return movie
 
 
-@time_stat
 def upload(movie):
-    time.sleep(random.randint(1, 3))
+    time.sleep(1)
     movie.after_upload()
     return movie
 
@@ -78,7 +75,8 @@ class ZyProcesser(object):
 
 
 # 只有zy一个苦逼操作时
-def translate_movie_by_single_person(movie):
+@time_stat
+def translate_movie_by_single_person(movie_list):
     # 1. 3个任务流队列 + 1个完成任务流的队列
     download_queue = ZyQueue()
     translate_queue = ZyQueue()
@@ -91,14 +89,16 @@ def translate_movie_by_single_person(movie):
     uploader = ZyProcesser(upload, upload_queue, done_queue)
 
     # 3. 将movie放入队列中，准备处理
-    download_queue.put(movie)
+    for movie in movie_list:
+        download_queue.put(movie)
 
-    # 4. 处理流程
-    downloader.process()
-    translater.process()
-    uploader.process()
+        # 4. 处理流程
+        downloader.process()
+        translater.process()
+        uploader.process()
 
 if __name__ == '__main__':
-    movie = Movie('current_movie')
-    translate_movie_by_single_person(movie)
-    movie.print_state()
+    movie_list = []
+    movie_list.append(Movie('movie1'))
+    movie_list.append(Movie('movie2'))
+    translate_movie_by_single_person(movie_list)
