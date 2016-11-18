@@ -49,21 +49,18 @@ Movie类，当完成每一个流程后，会出发相应的处理，修改Movie�
 
 ```python
     # 工作流中的三个步骤，每一个工作流过程都需要消耗一段时间
-    @time_stat
     def download(movie):
-        time.sleep(random.randint(1, 3))
+        time.sleep(1)
         movie.after_download()
         return movie
 
-    @time_stat
     def translate(movie):
-        time.sleep(random.randint(1, 2))
+        time.sleep(2)
         movie.after_translate()
         return movie
 
-    @time_stat
     def upload(movie):
-        time.sleep(random.randint(1, 3))
+        time.sleep(1)
         movie.after_upload()
         return movie
 ```
@@ -105,10 +102,16 @@ Movie类，当完成每一个流程后，会出发相应的处理，修改Movie�
 ```
 
 ### 第一阶段：
-
+当发布两部电影的时候，zy只能自己一个人做。每部电影所以需要大约5s中
 ```python
+
+    movie_list = []
+    movie_list.append(Movie('movie1'))
+    movie_list.append(Movie('movie2'))
+    translate_movie_by_single_person(movie_list)
+
     # 只有zy一个苦逼操作时
-    def translate_movie_by_single_person(movie):
+    def translate_movie_by_single_person(movie_list):
         # 1. 3个任务流队列 + 1个完成任务流的队列
         download_queue = ZyQueue()
         translate_queue = ZyQueue()
@@ -121,17 +124,17 @@ Movie类，当完成每一个流程后，会出发相应的处理，修改Movie�
         uploader = ZyProcesser(upload, upload_queue, done_queue)
 
         # 3. 将movie放入队列中，准备处理
-        download_queue.put(movie)
+        for movie in movie_list:
+            download_queue.put(movie)
 
-        # 4. 处理流程
-        downloader.process()
-        translater.process()
-        uploader.process()
+            # 4. 处理流程
+            downloader.process()
+            translater.process()
+            uploader.process()
 ```
 
 只有zy一个人做义工，同时需要去做download、translate和upload三个过程。
-
+所以当出现两部电影的时候，需要耗时4s*2=8s时间。
 
 ### 第二阶段：
     随着越来越多的美剧加入，我们加入了多人（多线程）支持。
-    
