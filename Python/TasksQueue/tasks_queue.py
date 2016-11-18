@@ -50,16 +50,14 @@ def upload(movie):
 
 # 2. 任务流队列
 class ZyQueue(object):
-    """每一个工作都先推送到任务队列中，进行下一个工作流程之前，从前序任务队列取得
-    """
     def __init__(self):
-        self.movies = deque()
+        self.deque = deque()
 
-    def put(self, movie):
-        self.movies.append(movie)
+    def put(self, item):
+        self.deque.append(item)
 
     def get(self):
-        return self.movies.popleft()
+        return self.deque.popleft()
 
 
 class ZyProcesser(object):
