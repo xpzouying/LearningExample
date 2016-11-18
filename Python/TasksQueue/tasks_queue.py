@@ -4,6 +4,7 @@
 import time
 import random
 from collections import deque
+from threading import Thread
 
 from utils import *
 
@@ -57,6 +58,7 @@ class ZyQueue(object):
         return self.deque.popleft()
 
 
+# zy一个人做所有流程
 class ZyProcesser(object):
     def __init__(self, func, in_queue, out_queue):
         """
@@ -72,6 +74,28 @@ class ZyProcesser(object):
         movie = self.in_queue.get()
         process_res = self.func(movie)
         self.out_queue.put(process_res)
+
+
+# 招募更多的美剧爱好者一起download、upload、translate
+# 引入进程类，调整更为智能
+class Processer(Thread):
+    def __init__(self, func, in_queue, out_queue):
+        self.func = func
+        self.in_queue = in_queue
+        self.out_queue = out_queue
+
+    def process(self):
+        # 从前序队列中获取一部电影
+        movie = self.in_queue.get()
+
+        # 处理电影
+        process_res = self.func(movie)
+
+        # 交给后续队列
+        self.out_queue.put(process_res)
+
+    def run(self):
+        self.process()
 
 
 # 只有zy一个苦逼操作时
@@ -96,6 +120,22 @@ def translate_movie_by_single_person(movie_list):
         downloader.process()
         translater.process()
         uploader.process()
+
+
+@time_stat
+def translate_movie_together(movie_list):
+    # 1. 3个任务流队列 + 1个完成任务流的队列
+    download_queue = ZyQueue()
+    translate_queue = ZyQueue()
+    upload_queue = ZyQueue()
+    done_queue = ZyQueue()
+
+    # 2. 多个志愿者一起干活，分别负责download、translate、upload
+    # 不需要把压力都放在我一个人身上
+    movie_fans = [
+        Processer(download, download_queue, translate_queue),
+    ]
+
 
 if __name__ == '__main__':
     movie_list = []
